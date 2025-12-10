@@ -1,0 +1,4 @@
+# Conteúdo do requirements.txt
+Flask
+gunicorn
+python-dotenv

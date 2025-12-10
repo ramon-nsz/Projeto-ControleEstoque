@@ -1,0 +1,14 @@
+# Conteúdo do .gitignore
+
+# Arquivo do banco de dados local
+*.db
+
+# Pastas e arquivos gerados pelo Python
+__pycache__/
+*.pyc
+
+# Ambiente virtual (se você tiver)
+venv/
+
+# Arquivos temporários do Flask/IDE
+.DS_Store

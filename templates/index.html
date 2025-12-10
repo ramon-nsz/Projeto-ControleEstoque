@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Controle de Estoque - Comunicação Visual</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        .saida-box { background: #ffe6e6; }
+        .entrada-box { background: #e6ffe6; }
+        .error { color: white; background-color: #ff4d4d; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-weight: bold;}
+        .success { color: white; background-color: #4CAF50; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-weight: bold;}
+        a { text-decoration: none; padding: 8px 15px; background-color: #007bff; color: white; border-radius: 4px; margin-bottom: 15px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <h1>Estoque da Oficina</h1>
+    
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+        <div class="success">{{ success }}</div>
+    {% endif %}
+
+    <a href="{{ url_for('historico') }}">Ver Histórico de Rastreamento (Onde foi usado?)</a>
+
+    <hr>
+    
+    <div class="box saida-box">
+        <h3>1. Registrar SAÍDA (Retirada de Material Existente)</h3>
+        <p><em>Você só pode retirar materiais já cadastrados. A quantidade deve ser um número **inteiro**.</em></p>
+        <form action="/movimentar_saida" method="POST">
+            
+            <label>Responsável pela Ação:</label>
+            <select name="funcionario_id" required>
+                {% for f in funcionarios %}
+                <option value="{{ f[0] }}">{{ f[1] }}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+            
+            <label>Material (A ser retirado):</label>
+            <select name="material_id">
+                {% for m in materiais %}
+                <option value="{{ m[0] }}">{{ m[1] }} ({{ m[2] }}) - Saldo: {{ m[4] }} {{ m[3] }}</option>
+                {% endfor %}
+            </select>
+            
+            <label>Destino/OS (Essencial):</label>
+            <input type="text" name="destino" placeholder="Ex: OS-1050 / Cliente X" required>
+            
+            <label>Qtd (Inteira):</label>
+            <input type="number" step="1" name="quantidade" min="1" required style="width: 60px;">
+            
+            <button type="submit">Registrar SAÍDA</button>
+        </form>
+    </div>
+
+    <div class="box entrada-box">
+        <h3>2. Registrar ENTRADA (Adição de Novo Material)</h3>
+        <p><em>Use este formulário apenas para cadastrar um **novo** tipo de material. A quantidade inicial deve ser um número **inteiro**.</em></p>
+        <form action="/movimentar_entrada_novo" method="POST">
+            
+            <label>Responsável pela Ação:</label>
+            <select name="funcionario_id" required>
+                {% for f in funcionarios %}
+                <option value="{{ f[0] }}">{{ f[1] }}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+            
+            <label>Nome do Material (a ser cadastrado):</label>
+            <input type="text" name="nome" placeholder="Ex: Acrílico Leitoso" required>
+
+            <label>Espessura:</label>
+            <input type="text" name="espessura" placeholder="Ex: 5mm" required>
+            
+            <label>Unidade de Medida:</label>
+            <select name="unidade">
+                <option value="Chapa">Chapa</option>
+                <option value="Placa">Placa</option>
+                <option value="M²">M²</option>
+                <option value="Kg">Kg</option>
+            </select>
+            
+            <label>Origem (NF/Fornecedor):</label>
+            <input type="text" name="origem" placeholder="Ex: NF 550 / Fornecedor A" required>
+            
+            <label>Qtd Inicial (Inteira):</label>
+            <input type="number" step="1" name="quantidade" min="1" required style="width: 60px;">
+            
+            <button type="submit">Registrar ENTRADA de Novo Material</button>
+        </form>
+    </div>
+
+    <h3>Saldo Atual</h3>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Material</th>
+            <th>Espessura</th> 
+            <th>Unidade</th>
+            <th>Saldo em Estoque</th>
+        </tr>
+        {% for m in materiais %}
+        <tr>
+            <td>{{ m[0] }}</td>
+            <td>{{ m[1] }}</td>
+            <td>{{ m[2] }}</td> 
+            <td>{{ m[3] }}</td>
+            <td><strong>{{ m[4] }}</strong></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

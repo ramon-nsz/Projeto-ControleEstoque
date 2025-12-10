@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Histórico de Movimentações</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .saida { background-color: #ffe6e6; }
+        .entrada { background-color: #e6ffe6; }
+        a { text-decoration: none; padding: 8px 15px; background-color: #007bff; color: white; border-radius: 4px; margin-bottom: 15px; display: inline-block; }
+        .box { border: 1px solid #ccc; padding: 15px; background: #f9f9f9; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Histórico de Movimentações (Rastreamento)</h1>
+    <a href="{{ url_for('index') }}">Voltar para o Estoque</a>
+
+    <div class="box">
+        <h3>Filtrar por OS ou Origem</h3>
+        <form action="{{ url_for('historico') }}" method="GET">
+            <input type="text" name="busca" placeholder="Digite a OS (ex: OS-1050) ou NF" value="{{ busca }}">
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+    
+    <table>
+        <tr>
+            <th>Data e Hora</th>
+            <th>Ação</th>
+            <th>Material (Nome/Espessura)</th> 
+            <th>Quantidade</th>
+            <th>Destino/Origem</th>
+            <th>Responsável</th>
+        </tr>
+        {% for mov in movimentacoes %}
+        <tr class="{{ 'saida' if mov[2] == 'SAIDA' else 'entrada' }}">
+            <td>{{ mov[5] }}</td>
+            <td><strong>{{ mov[2] }}</strong></td>
+            <td>{{ mov[0] }}</td>
+            <td>{{ mov[1] }}</td>
+            <td>{{ mov[3] }}</td>
+            <td>{{ mov[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
