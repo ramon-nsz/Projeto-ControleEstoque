@@ -48,8 +48,8 @@ def iniciar_banco():
 
 
 # ** CORREÇÃO CRÍTICA PARA O RENDER: INICIALIZAÇÃO E DADOS DE TESTE **
-# O código aqui é executado sempre que o servidor é iniciado (Gunicorn/Render),
-# garantindo que o banco de dados e as tabelas existam antes da primeira rota ser acessada.
+# ESTE CÓDIGO É EXECUTADO AUTOMATICAMENTE QUANDO O SERVIDOR INICIA
+# (movido para fora do if __name__ == '__main__':)
 
 iniciar_banco()
 
