@@ -25,7 +25,7 @@ def iniciar_banco():
             nome TEXT NOT NULL,
             espessura TEXT,  
             unidade TEXT NOT NULL, 
-            saldo_atual INTEGER DEFAULT 0 -- Saldo agora é sempre inteiro
+            saldo_atual INTEGER DEFAULT 0 
         )
     ''')
     
@@ -34,7 +34,7 @@ def iniciar_banco():
         CREATE TABLE IF NOT EXISTS movimentacoes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             material_id INTEGER,
-            quantidade INTEGER, -- Quantidade agora é sempre inteiro
+            quantidade INTEGER, 
             tipo TEXT, 
             destino_origem TEXT,
             funcionario_id INTEGER,
@@ -45,6 +45,35 @@ def iniciar_banco():
     ''')
     conn.commit()
     conn.close()
+
+
+# ** CORREÇÃO CRÍTICA PARA O RENDER: INICIALIZAÇÃO E DADOS DE TESTE **
+# O código aqui é executado sempre que o servidor é iniciado (Gunicorn/Render)
+
+iniciar_banco()
+
+conn = sqlite3.connect(DB_NAME)
+cursor = conn.cursor()
+
+# Adicionando Funcionários de Teste (APENAS SE A TABELA ESTIVER VAZIA)
+cursor.execute("SELECT count(*) FROM funcionarios")
+if cursor.fetchone()[0] == 0:
+    cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Guilherme - Compras')")
+    cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Ramon - Produção')")
+    cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Mauro - Encarregado')")
+    cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Junior - Dono')")
+    print("Funcionários de teste inseridos!")
+    
+# Adicionando Materiais de Teste (APENAS SE A TABELA ESTIVER VAZIA)
+cursor.execute("SELECT count(*) FROM materiais")
+if cursor.fetchone()[0] == 0:
+    cursor.execute("INSERT INTO materiais (nome, espessura, unidade, saldo_atual) VALUES ('ACM Preto Brilho', '0.18mm', 'Chapa', 0)")
+    cursor.execute("INSERT INTO materiais (nome, espessura, unidade, saldo_atual) VALUES ('Acrílico Transparente', '3mm', 'M²', 0)")
+    cursor.execute("INSERT INTO materiais (nome, espessura, unidade, saldo_atual) VALUES ('PVC Expandido', '10mm', 'Placa', 0)")
+    print("Materiais de teste inseridos!")
+    
+conn.commit()
+conn.close()
 
 # --- 2. ROTAS DO SITE ---
 
@@ -62,7 +91,6 @@ def index():
     funcionarios = cursor.fetchall()
     conn.close()
     
-    # Captura a mensagem de erro do redirecionamento
     error = request.args.get('error')
     success = request.args.get('success')
     
@@ -77,7 +105,7 @@ def movimentar_saida():
     funcionario_id = request.form['funcionario_id']
     
     try:
-        # **NOVA VALIDAÇÃO: FORÇA A SER UM INTEIRO**
+        # **VALIDAÇÃO: FORÇA A SER UM INTEIRO**
         quantidade = int(request.form['quantidade'])
         if quantidade <= 0:
             return redirect(url_for('index', error="A quantidade deve ser um inteiro positivo."))
@@ -97,7 +125,7 @@ def movimentar_saida():
         
     if saldo_atual[0] < quantidade:
         conn.close()
-        return redirect(url_for('index', error="Saldo insuficiente em estoque."))
+        return redirect(url_for('index', error=f"Saldo insuficiente em estoque. Saldo atual: {saldo_atual[0]}"))
 
     # 1. Registra no histórico
     cursor.execute('''
@@ -127,7 +155,7 @@ def movimentar_entrada_novo():
         return redirect(url_for('index', error="Preencha todos os campos obrigatórios para o novo material."))
     
     try:
-        # **NOVA VALIDAÇÃO: FORÇA A SER UM INTEIRO**
+        # **VALIDAÇÃO: FORÇA A SER UM INTEIRO**
         quantidade = int(request.form['quantidade'])
         if quantidade <= 0:
             return redirect(url_for('index', error="A quantidade inicial deve ser um inteiro positivo."))
@@ -191,40 +219,7 @@ def historico():
     
     return render_template('historico.html', movimentacoes=movimentacoes, busca=busca)
 
-# --- 3. INICIALIZAÇÃO E DADOS DE TESTE ---
+# --- 3. INICIALIZAÇÃO LOCAL ---
 if __name__ == '__main__':
-    iniciar_banco()
-    
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    # Adicionando Funcionários de Teste
-    cursor.execute("SELECT count(*) FROM funcionarios")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Guilherme - Compras')")
-        cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Ramon - Produção')")
-        cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Mauro - Encarregado')")
-        cursor.execute("INSERT INTO funcionarios (nome) VALUES ('Junior - Dono')")
-        print("Funcionários de teste inseridos!")
-        
-    # Adicionando Materiais de Teste (COM ESPESSURA E SALDO INTEIRO)
-    cursor.execute("SELECT count(*) FROM materiais")
-    if cursor.fetchone()[0] == 0:
-        # Materiais iniciais com saldo 0
-        cursor.execute("INSERT INTO materiais (nome, espessura, unidade, saldo_atual) VALUES ('ACM Preto Brilho', '0.18mm', 'Chapa', 0)")
-        cursor.execute("INSERT INTO materiais (nome, espessura, unidade, saldo_atual) VALUES ('Acrílico Transparente', '3mm', 'M²', 0)")
-        cursor.execute("INSERT INTO materiais (nome, espessura, unidade, saldo_atual) VALUES ('PVC Expandido', '10mm', 'Placa', 0)")
-        print("Materiais de teste inseridos!")
-        
-    conn.commit()
-    conn.close()
-# ... (Seu código do app.py)
-
-# O Render/Gunicorn ignorarão esta parte, mas ela deve ficar no final do arquivo:
-if __name__ == '__main__':
-    iniciar_banco()
-    # ... (código de inicialização de dados de teste) ...
-    
-    # ATENÇÃO: Retire o debug=True antes de subir o código para produção, se desejar.
-    # Mas para este MVP, o Gunicorn vai assumir a execução.
+    # O Gunicorn ignora isto, mas é usado para o teste local no seu PC.
     app.run(debug=True)
