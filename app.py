@@ -47,9 +47,11 @@ def iniciar_banco():
     conn.close()
 
 
-# ** CORREÇÃO CRÍTICA PARA O RENDER: INICIALIZAÇÃO E DADOS DE TESTE **
-# ESTE CÓDIGO É EXECUTADO AUTOMATICAMENTE QUANDO O SERVIDOR INICIA
-# (movido para fora do if __name__ == '__main__':)
+# ************************************************************
+# ** CORREÇÃO CRÍTICA PARA O RENDER: INICIALIZAÇÃO NO TOPO **
+# ESTE CÓDIGO É EXECUTADO SEMPRE QUE O SERVIDOR INICIA, GARANTINDO
+# QUE AS TABELAS EXISTAM ANTES DE QUALQUER ROTA SER CHAMADA.
+# ************************************************************
 
 iniciar_banco()
 
@@ -75,6 +77,9 @@ if cursor.fetchone()[0] == 0:
     
 conn.commit()
 conn.close()
+
+# ************************************************************
+
 
 # --- 2. ROTAS DO SITE ---
 
