@@ -48,7 +48,8 @@ def iniciar_banco():
 
 
 # ** CORREÇÃO CRÍTICA PARA O RENDER: INICIALIZAÇÃO E DADOS DE TESTE **
-# O código aqui é executado sempre que o servidor é iniciado (Gunicorn/Render)
+# O código aqui é executado sempre que o servidor é iniciado (Gunicorn/Render),
+# garantindo que o banco de dados e as tabelas existam antes da primeira rota ser acessada.
 
 iniciar_banco()
 
@@ -83,7 +84,6 @@ def index():
     cursor = conn.cursor()
     
     # Busca materiais com todas as colunas
-    # m[0]=id, m[1]=nome, m[2]=espessura, m[3]=unidade, m[4]=saldo
     cursor.execute("SELECT id, nome, espessura, unidade, saldo_atual FROM materiais ORDER BY nome")
     materiais = cursor.fetchall()
     
@@ -219,7 +219,7 @@ def historico():
     
     return render_template('historico.html', movimentacoes=movimentacoes, busca=busca)
 
-# --- 3. INICIALIZAÇÃO LOCAL ---
+# --- 3. INICIALIZAÇÃO LOCAL (Opcional) ---
 if __name__ == '__main__':
-    # O Gunicorn ignora isto, mas é usado para o teste local no seu PC.
+    # Este bloco é apenas para testar localmente no seu PC.
     app.run(debug=True)
